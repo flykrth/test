@@ -81,31 +81,37 @@ async function onScanSuccess(decodedText) {
   document.getElementById("result").innerHTML = "⏳ Verifying...";
 
   try {
-    const formData = new URLSearchParams();
-formData.append("qr", decodedText);
+  const formData = new URLSearchParams();
+  formData.append("qr", decodedText);
 
-const res = await fetch(API_URL, {
-  method: "POST",
-  body: formData
-});
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: formData,
+    redirect: "follow"
+  });
 
-    const data = await res.json();
-
-    if (!data.valid) {
-      document.getElementById("result").innerHTML =
-        `<span class="invalid">${data.message}</span>`;
-    } else {
-      document.getElementById("result").innerHTML =
-        `<span class="valid">
-          ✅ VALID ENTRY<br>
-          Roll: ${data.roll}
-        </span>`;
-    }
-
-  } catch (err) {
-    document.getElementById("result").innerHTML =
-      `<span class="invalid">❌ Network error</span>`;
+  if (!res.ok) {
+    throw new Error("HTTP " + res.status);
   }
+
+  const data = await res.json();
+
+  if (!data.valid) {
+    document.getElementById("result").innerHTML =
+      `<span class="invalid">${data.message}</span>`;
+  } else {
+    document.getElementById("result").innerHTML =
+      `<span class="valid">
+        ✅ VALID ENTRY<br>
+        Roll: ${data.roll}
+      </span>`;
+  }
+
+} catch (err) {
+  console.error(err);
+  document.getElementById("result").innerHTML =
+    `<span class="invalid">❌ Network error</span>`;
+}
 
   setTimeout(() => cooldown = false, 1500);
 }
